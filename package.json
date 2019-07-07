@@ -1,0 +1,12 @@
+{
+  "name": "now-mongo-api",
+  "version": "1.0.0",
+  "description": "Serverless APIs to fetch from MongoDB",
+  "main": "index.js",
+  "author": "Emanuele Fumagalli",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^3.2.7",
+    "zlib": "^1.0.5"
+  }
+}
