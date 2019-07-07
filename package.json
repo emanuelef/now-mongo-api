@@ -7,6 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "mongodb": "^3.2.7",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "air-commons": "git+https://github.com/emanuelef/air-commons.git"
   }
 }

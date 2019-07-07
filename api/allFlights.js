@@ -3,8 +3,53 @@
 const url = require("url");
 const MongoClient = require("mongodb").MongoClient;
 const zlib = require("zlib");
+const Position = require("air-commons").Position;
+const TimedPosition = require("air-commons").TimedPosition;
 
 let cachedDb = null;
+
+const HOME_POSITION_COORDINATES = {
+  latitude: 51.444137,
+  longitude: -0.351227,
+  elevation: 16
+};
+
+const POSTION_OF_INTEREST = new Position({
+  lat: HOME_POSITION_COORDINATES.latitude,
+  lon: HOME_POSITION_COORDINATES.longitude,
+  alt: HOME_POSITION_COORDINATES.elevation
+});
+
+const testDistanceCalculation = (position, allFlights) => {
+  allFlights.forEach(flight => {
+    const timedPositions = flight.positions.map(
+      pos =>
+        new TimedPosition({
+          lat: pos[0],
+          lon: pos[1],
+          alt: pos[2],
+          timestamp: pos[3]
+        })
+    );
+
+    const { minDistance } = TimedPosition.getMinimumDistanceToPosition(
+      timedPositions,
+      position
+    );
+
+    if (flight.minDistance < 1000) {
+      console.log(
+        flight.icao,
+        minDistance,
+        new Date(flight.startTime * 1000),
+        flight.minDistance,
+        flight.minDistanceAccurate,
+        Math.abs(minDistance - flight.minDistance),
+        flight.startTime
+      );
+    }
+  });
+};
 
 async function connectToDatabase(uri) {
   if (cachedDb) {
@@ -49,6 +94,9 @@ module.exports = async (req, res) => {
   const results = await collection
     .find({ startTime: { $gte: Number(query.start), $lt: Number(query.end) } })
     .toArray();
+
+  //console.log(results[results.length - 1]);
+  //console.log(new Date(results[results.length - 1].startTime * 1000));
 
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Encoding", "gzip");
