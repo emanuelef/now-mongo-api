@@ -20,6 +20,8 @@ const POSTION_OF_INTEREST = new Position({
   alt: HOME_POSITION_COORDINATES.elevation
 });
 
+const INTERPOLATION_DISTANCE = 100;
+
 const testDistanceCalculation = (position, allFlights) => {
   allFlights.forEach(flight => {
     const timedPositions = flight.positions.map(
@@ -48,6 +50,28 @@ const testDistanceCalculation = (position, allFlights) => {
         flight.startTime
       );
     }
+  });
+};
+
+const addInterpolatedPositions = (
+  allFlights,
+  distanceBetweenSamples = INTERPOLATION_DISTANCE
+) => {
+  allFlights.forEach(flight => {
+    const timedPositions = flight.positions.map(
+      pos =>
+        new TimedPosition({
+          lat: pos[0],
+          lon: pos[1],
+          alt: pos[2],
+          timestamp: pos[3]
+        })
+    );
+
+    flight.positions = TimedPosition.getSubsampledPositions(
+      timedPositions,
+      distanceBetweenSamples
+    ).map(pos => [pos.lat, pos.lon, pos.alt, pos.timestamp]);
   });
 };
 
@@ -97,6 +121,10 @@ module.exports = async (req, res) => {
 
   //console.log(results[results.length - 1]);
   //console.log(new Date(results[results.length - 1].startTime * 1000));
+
+  if (Number(query.interpolation) === 1) {
+    addInterpolatedPositions(results);
+  }
 
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Encoding", "gzip");
