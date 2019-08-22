@@ -8,50 +8,7 @@ const TimedPosition = require("air-commons").TimedPosition;
 
 let cachedDb = null;
 
-const HOME_POSITION_COORDINATES = {
-  latitude: 51.444137,
-  longitude: -0.351227,
-  elevation: 16
-};
-
-const POSTION_OF_INTEREST = new Position({
-  lat: HOME_POSITION_COORDINATES.latitude,
-  lon: HOME_POSITION_COORDINATES.longitude,
-  alt: HOME_POSITION_COORDINATES.elevation
-});
-
 const INTERPOLATION_DISTANCE = 100;
-
-const testDistanceCalculation = (position, allFlights) => {
-  allFlights.forEach(flight => {
-    const timedPositions = flight.positions.map(
-      pos =>
-        new TimedPosition({
-          lat: pos[0],
-          lon: pos[1],
-          alt: pos[2],
-          timestamp: pos[3]
-        })
-    );
-
-    const { minDistance } = TimedPosition.getMinimumDistanceToPosition(
-      timedPositions,
-      position
-    );
-
-    if (flight.minDistance < 1000) {
-      console.log(
-        flight.icao,
-        minDistance,
-        new Date(flight.startTime * 1000),
-        flight.minDistance,
-        flight.minDistanceAccurate,
-        Math.abs(minDistance - flight.minDistance),
-        flight.startTime
-      );
-    }
-  });
-};
 
 const addInterpolatedPositions = (
   allFlights,
@@ -111,15 +68,12 @@ module.exports = async (req, res) => {
 
   const collection = await db.collection("flights");
 
-  const end = Math.floor(Date.now() / 1000);
-  const start = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
-
-  console.log(query.start, query.end);
-  console.log(start, end);
+  const end = query.end || Math.floor(Date.now() / 1000);
+  const start = query.start || Math.floor(Date.now() / 1000) - 24 * 60 * 60;
 
   // Select the users collection from the database
   const results = await collection
-    .find({ startTime: { $gte: Number(query.start), $lt: Number(query.end) } })
+    .find({ startTime: { $gte: Number(start), $lt: Number(end) } })
     .toArray();
 
   //console.log(results[results.length - 1]);
@@ -129,6 +83,17 @@ module.exports = async (req, res) => {
     addInterpolatedPositions(results);
   }
 
+  const passagesPosition = results.map(flight =>
+    flight.positions.map(timedPos => {
+      return {
+        lat: timedPos[0],
+        lon: timedPos[1],
+        alt: timedPos[2],
+        timestamp: timedPos[3]
+      };
+    })
+  );
+
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Encoding", "gzip");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -137,7 +102,7 @@ module.exports = async (req, res) => {
     "Origin, X-Requested-With, Content-Type, Accept"
   );
 
-  const buf = Buffer.from(JSON.stringify(results));
+  const buf = Buffer.from(JSON.stringify(passagesPosition));
   zlib.gzip(buf, (_, result) => {
     res.end(result);
   });
