@@ -24,16 +24,9 @@ const minDistanceCalculation = (position, allFlights) => {
         })
     );
 
-    let hrstart = process.hrtime();
     const minimum = TimedPosition.getMinimumDistanceToPosition(
       timedPositions,
       position
-    );
-    let hrend = process.hrtime(hrstart);
-    console.info(
-      "getMinimumDistanceToPosition Execution time (hr): %ds %dms",
-      hrend[0],
-      hrend[1] / 1000000
     );
 
     flightRecalculated = { ...flight, ...minimum };
@@ -114,14 +107,13 @@ module.exports = async (req, res) => {
   //console.log(new Date(results[results.length - 1].startTime * 1000));
 
   let hrstart = process.hrtime();
-  addInterpolatedPositions(results);
+  //addInterpolatedPositions(results);
   let hrend = process.hrtime(hrstart);
   console.info(
     "Add interpolated Execution time (hr): %ds %dms",
     hrend[0],
     hrend[1] / 1000000
   );
-
 
   const POSTION_OF_INTEREST = new Position({
     lat: query.lat,
@@ -141,7 +133,7 @@ module.exports = async (req, res) => {
     hrend[1] / 1000000
   );
 
-  console.log('TOT', cleanedResults.length)
+  console.log("TOT", cleanedResults.length);
 
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Encoding", "gzip");
