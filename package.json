@@ -1,5 +1,8 @@
 {
   "name": "now-mongo-api",
+  "engines": {
+    "node": "10.x"
+  },
   "version": "1.0.0",
   "description": "Serverless APIs to fetch from MongoDB",
   "main": "index.js",
