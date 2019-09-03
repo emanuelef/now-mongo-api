@@ -7,54 +7,16 @@ const MongoClient = require("mongodb").MongoClient;
 const zlib = require("zlib");
 const Position = require("air-commons").Position;
 const TimedPosition = require("air-commons").TimedPosition;
+const { Worker } = require("worker_threads");
+const path = require("path");
+const os = require("os");
 
 let cachedDb = null;
 
-const INTERPOLATION_DISTANCE = 100;
+const cpuCount = os.cpus().length;
+const workerScript = path.join(__dirname, "./minDistanceCalculator.js");
 
-const minDistanceCalculation = (position, allFlights) => {
-  return allFlights.map(flight => {
-    const timedPositions = flight.positions.map(
-      pos =>
-        new TimedPosition({
-          lat: pos[0],
-          lon: pos[1],
-          alt: pos[2],
-          timestamp: pos[3]
-        })
-    );
-
-    const minimum = TimedPosition.getMinimumDistanceToPosition(
-      timedPositions,
-      position
-    );
-
-    flightRecalculated = { ...flight, ...minimum };
-    return flightRecalculated;
-  });
-};
-
-const addInterpolatedPositions = (
-  allFlights,
-  distanceBetweenSamples = INTERPOLATION_DISTANCE
-) => {
-  allFlights.forEach(flight => {
-    const timedPositions = flight.positions.map(
-      pos =>
-        new TimedPosition({
-          lat: pos[0],
-          lon: pos[1],
-          alt: pos[2],
-          timestamp: pos[3]
-        })
-    );
-
-    flight.positions = TimedPosition.getSubsampledPositions(
-      timedPositions,
-      distanceBetweenSamples
-    ).map(pos => [pos.lat, pos.lon, pos.alt, pos.timestamp]);
-  });
-};
+//console.log("CPU", cpuCount);
 
 async function connectToDatabase(uri) {
   if (cachedDb) {
@@ -70,6 +32,45 @@ async function connectToDatabase(uri) {
   // Cache the database connection and return the connection
   cachedDb = db;
   return db;
+}
+
+const calculateMonDistanceWithWorker = (position, flights) => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(workerScript, {
+      workerData: {
+        position,
+        flights
+      }
+    });
+    worker.on("message", resolve);
+    worker.on("error", reject);
+  });
+};
+
+async function distributeLoadAcrossWorkers(position, flights, workers) {
+  const segmentsPerWorker = Math.round(flights.length / workers);
+  const promises = Array(workers)
+    .fill()
+    .map((_, index) => {
+      let arrayToSort;
+      if (index === 0) {
+        // the first segment
+        arrayToSort = flights.slice(0, segmentsPerWorker);
+      } else if (index === workers - 1) {
+        // the last segment
+        arrayToSort = flights.slice(segmentsPerWorker * index);
+      } else {
+        // intermediate segments
+        arrayToSort = flights.slice(
+          segmentsPerWorker * index,
+          segmentsPerWorker * (index + 1)
+        );
+      }
+      return calculateMonDistanceWithWorker(position, arrayToSort);
+    });
+  // merge all the segments of the array
+  const segmentsResults = await Promise.all(promises);
+  return segmentsResults.reduce((acc, arr) => acc.concat(arr), []);
 }
 
 // The main, exported, function of the endpoint,
@@ -103,29 +104,21 @@ module.exports = async (req, res) => {
     .find({ startTime: { $gte: Number(query.start), $lt: Number(query.end) } })
     .toArray();
 
-  //console.log(results[results.length - 1]);
-  //console.log(new Date(results[results.length - 1].startTime * 1000));
-
-  let hrstart = process.hrtime();
-  //addInterpolatedPositions(results);
-  let hrend = process.hrtime(hrstart);
-  console.info(
-    "Add interpolated Execution time (hr): %ds %dms",
-    hrend[0],
-    hrend[1] / 1000000
-  );
-
   const POSTION_OF_INTEREST = new Position({
     lat: query.lat,
     lon: query.lon,
     alt: 10
   });
 
-  // remove positions
   hrstart = process.hrtime();
-  let cleanedResults = minDistanceCalculation(POSTION_OF_INTEREST, results).map(
-    ({ _id, positions, ...item }) => item
+  let cleanedResults = await distributeLoadAcrossWorkers(
+    POSTION_OF_INTEREST,
+    results,
+    cpuCount
   );
+
+  cleanedResults = cleanedResults.map(({ _id, positions, ...item }) => item);
+
   hrend = process.hrtime(hrstart);
   console.info(
     "Calculate Distance Execution time (hr): %ds %dms",
