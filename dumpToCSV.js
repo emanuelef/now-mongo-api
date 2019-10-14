@@ -36,12 +36,14 @@ async function dump() {
   const end = Math.floor(Date.now() / 1000);
   const start = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
 
-  const results = await collection.find({
+  const cursor = await collection.find({
     startTime: { $gte: Number(start), $lt: Number(end) }
   });
 
   cont = 0;
-  results.forEach(doc => {
+
+  while (await cursor.hasNext()) {
+    const doc = await cursor.next();
     const {
       op,
       from,
@@ -78,7 +80,7 @@ async function dump() {
     subset.to = getLastString(subset.to);
 
     console.log(cont++, subset);
-  });
+  }
 }
 
-dump();
+dump().then(console.log("Done!"));
