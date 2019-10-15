@@ -15,6 +15,13 @@ const getLastString = el =>
         .trim()
     : "";
 
+const cleanOperator = el =>
+  el
+    ? el
+        .replace(",", "")
+        .trim()
+    : "";
+
 async function connectToDatabase(uri) {
   if (cachedDb) {
     return cachedDb;
@@ -81,6 +88,7 @@ async function dump() {
       minDistance
     };
 
+    subset.op = cleanOperator(subset.op);
     subset.from = getLastString(subset.from);
     subset.to = getLastString(subset.to);
 
