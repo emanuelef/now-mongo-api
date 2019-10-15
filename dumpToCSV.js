@@ -1,5 +1,6 @@
 const MongoClient = require("mongodb").MongoClient;
 const url = require("url");
+const fs = require("fs");
 
 const MONGODB_URI =
   "mongodb://admin:ashbeck19@ds343887.mlab.com:43887/lhr-passages";
@@ -37,10 +38,14 @@ async function dump() {
   const start = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
 
   const cursor = await collection.find({
-    startTime: { $gte: Number(start), $lt: Number(end) }
+    /*startTime: { $gte: Number(start), $lt: Number(end) }*/
   });
 
   cont = 0;
+
+  let stream = fs.createWriteStream("dump.csv", { flags: "w" });
+
+  let headerDone = false;
 
   while (await cursor.hasNext()) {
     const doc = await cursor.next();
@@ -79,8 +84,18 @@ async function dump() {
     subset.from = getLastString(subset.from);
     subset.to = getLastString(subset.to);
 
-    console.log(cont++, subset);
+    //console.log(cont++, subset);
+
+    if (!headerDone) {
+      stream.write(Object.keys(subset).join() + "\n");
+      headerDone = true;
+    }
+
+    stream.write(Object.values(subset).join() + "\n");
   }
+
+  stream.end();
+  process.exit();
 }
 
-dump().then(console.log("Done!"));
+dump();
