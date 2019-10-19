@@ -1,6 +1,8 @@
 const MongoClient = require("mongodb").MongoClient;
 const url = require("url");
 const fs = require("fs");
+const Position = require("air-commons").Position;
+const TimedPosition = require("air-commons").TimedPosition;
 
 const MONGODB_URI =
   "mongodb://admin:ashbeck19@ds343887.mlab.com:43887/lhr-passages";
@@ -15,12 +17,7 @@ const getLastString = el =>
         .trim()
     : "";
 
-const cleanOperator = el =>
-  el
-    ? el
-        .replace(",", "")
-        .trim()
-    : "";
+const cleanOperator = el => (el ? el.replace(",", "").trim() : "");
 
 async function connectToDatabase(uri) {
   if (cachedDb) {
@@ -50,12 +47,36 @@ async function dump() {
 
   cont = 0;
 
-  let stream = fs.createWriteStream("dump.csv", { flags: "w" });
+  let stream = fs.createWriteStream("dump-dev.csv", { flags: "w" });
 
   let headerDone = false;
 
+  const POSTION_OF_INTEREST = new Position({
+    lat: 51.47676705,
+    lon: -0.35027019,
+    alt: 10
+  });
+
   while (await cursor.hasNext()) {
-    const doc = await cursor.next();
+    let doc = await cursor.next();
+
+    const timedPositions = doc.positions.map(
+      pos =>
+        new TimedPosition({
+          lat: pos[0],
+          lon: pos[1],
+          alt: pos[2],
+          timestamp: pos[3]
+        })
+    );
+
+    const minimum = TimedPosition.getMinimumDistanceToPosition(
+      timedPositions,
+      POSTION_OF_INTEREST
+    );
+
+    doc = { ...doc, ...minimum };
+
     const {
       op,
       from,
