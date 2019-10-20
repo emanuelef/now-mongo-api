@@ -47,7 +47,7 @@ async function dump() {
 
   cont = 0;
 
-  let stream = fs.createWriteStream("dump-dev.csv", { flags: "w" });
+  let stream = fs.createWriteStream("dump-dev-icao.csv", { flags: "w" });
 
   let headerDone = false;
 
@@ -78,6 +78,7 @@ async function dump() {
     doc = { ...doc, ...minimum };
 
     const {
+      icao,
       op,
       from,
       to,
@@ -94,6 +95,7 @@ async function dump() {
       ...partialObject
     } = doc;
     const subset = {
+      icao,
       op,
       from,
       to,
