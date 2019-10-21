@@ -47,7 +47,9 @@ async function dump() {
 
   cont = 0;
 
-  let stream = fs.createWriteStream("dump-dev-icao.csv", { flags: "w" });
+  let stream = fs.createWriteStream("dump-icao-samples.csv", {
+    flags: "w"
+  });
 
   let headerDone = false;
 
@@ -70,12 +72,15 @@ async function dump() {
         })
     );
 
+    /*
     const minimum = TimedPosition.getMinimumDistanceToPosition(
       timedPositions,
       POSTION_OF_INTEREST
     );
+    
 
     doc = { ...doc, ...minimum };
+    */
 
     const {
       icao,
@@ -92,6 +97,7 @@ async function dump() {
       wDeg,
       wSpeed,
       minDistance,
+      samples,
       ...partialObject
     } = doc;
     const subset = {
@@ -108,7 +114,8 @@ async function dump() {
       wakeTurbulence,
       wDeg,
       wSpeed,
-      minDistance
+      minDistance,
+      samples
     };
 
     subset.op = cleanOperator(subset.op);
