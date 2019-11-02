@@ -19,6 +19,8 @@ const getLastString = el =>
 
 const cleanOperator = el => (el ? el.replace(",", "").trim() : "");
 
+const icaoAirport = el => (el && el.length >= 4 ? el.substring(0, 4) : "");
+
 async function connectToDatabase(uri) {
   if (cachedDb) {
     return cachedDb;
@@ -47,7 +49,13 @@ async function dump() {
 
   cont = 0;
 
-  let stream = fs.createWriteStream("dump-icao-samples.csv", {
+  const dateFormatted = new Date()
+    .toJSON()
+    .slice(0, 10)
+    .split("-")
+    .reverse()
+    .join("_");
+  let stream = fs.createWriteStream(`dump_${dateFormatted}.csv`, {
     flags: "w"
   });
 
@@ -105,6 +113,8 @@ async function dump() {
       op,
       from,
       to,
+      from,
+      to,
       startTime,
       startLat,
       startLon,
@@ -119,8 +129,10 @@ async function dump() {
     };
 
     subset.op = cleanOperator(subset.op);
-    subset.from = getLastString(subset.from);
-    subset.to = getLastString(subset.to);
+    subset.fromCountry = getLastString(subset.from);
+    subset.toCountry = getLastString(subset.to);
+    subset.from = icaoAirport(subset.from);
+    subset.to = icaoAirport(subset.to);
 
     //console.log(cont++, subset);
 
