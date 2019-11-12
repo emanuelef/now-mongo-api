@@ -11,7 +11,7 @@
   "dependencies": {
     "air-commons": "git+https://github.com/emanuelef/air-commons.git",
     "fast-csv": "^3.4.0",
-    "mongodb": "^3.3.3",
+    "mongodb": "^3.3.4",
     "zlib": "^1.0.5"
   }
 }

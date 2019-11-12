@@ -5,4 +5,7 @@ yarn add zlib
 
 now dev // run locally
 now // deploy
+
+Update to latest air-commons
+npm install air-commons
 ```

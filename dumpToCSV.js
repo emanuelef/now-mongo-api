@@ -3,23 +3,12 @@ const url = require("url");
 const fs = require("fs");
 const Position = require("air-commons").Position;
 const TimedPosition = require("air-commons").TimedPosition;
+const { getLastString, cleanOperator, icaoAirport } = require('air-commons').utils;
 
 const MONGODB_URI =
   "mongodb://admin:ashbeck19@ds343887.mlab.com:43887/lhr-passages";
 
 let cachedDb = null;
-
-const getLastString = el =>
-  el
-    ? el
-        .split(",")
-        .pop()
-        .trim()
-    : "";
-
-const cleanOperator = el => (el ? el.replace(",", "").trim() : "");
-
-const icaoAirport = el => (el && el.length >= 4 ? el.substring(0, 4) : "");
 
 async function connectToDatabase(uri) {
   if (cachedDb) {
