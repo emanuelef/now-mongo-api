@@ -10,8 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "air-commons": "git+https://github.com/emanuelef/air-commons.git",
-    "fast-csv": "^3.4.0",
-    "mongodb": "^3.3.4",
+    "fast-csv": "^4.0.2",
+    "mongodb": "^3.5.1",
     "zlib": "^1.0.5"
   }
 }
