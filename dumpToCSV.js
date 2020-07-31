@@ -44,8 +44,8 @@ async function dump() {
     .split("-")
     .reverse()
     .join("_");
-  let stream = fs.createWriteStream(`dump_${dateFormatted}.csv`, {
-    flags: "w"
+    let stream = fs.createWriteStream(`dump_${dateFormatted}.csv`, {
+      flags: "w"
   });
 
   let headerDone = false;
@@ -58,6 +58,8 @@ async function dump() {
 
   while (await cursor.hasNext()) {
     let doc = await cursor.next();
+
+    //console.log(doc.icao, doc.startTime)
 
     const timedPositions = doc.positions.map(
       pos =>
@@ -130,11 +132,13 @@ async function dump() {
       headerDone = true;
     }
 
-    stream.write(Object.values(subset).join() + "\n");
+    await stream.write(Object.values(subset).join() + "\n");
   }
 
-  stream.end();
+  await new Promise(r => setTimeout(r, 7000));
+
+  await stream.end();
   process.exit();
 }
-
+dependencies
 dump();
