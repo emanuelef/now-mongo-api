@@ -140,5 +140,5 @@ async function dump() {
   await stream.end();
   process.exit();
 }
-dependencies
+
 dump();
