@@ -1,8 +1,0 @@
-{
-  "name": "now-mongo-api",
-  "version": 2,
-  "builds": [{ "src": "**/*.js", "use": "@now/node" }],
-  "env": {
-    "MONGODB_URI": "@my-mongodb-uri"
-  }
-}

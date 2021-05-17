@@ -1,7 +1,7 @@
 {
   "name": "now-mongo-api",
   "engines": {
-    "node": "10.x"
+    "node": "14.x"
   },
   "version": "1.0.0",
   "description": "Serverless APIs to fetch from MongoDB",
@@ -9,7 +9,7 @@
   "author": "Emanuele Fumagalli",
   "license": "MIT",
   "dependencies": {
-    "air-commons": "git+https://github.com/emanuelef/air-commons.git",
+    "air-commons": "git+https://github.com/emanuelef/air-commons.git#1.0.0",
     "fast-csv": "^4.3.6",
     "mongodb": "^3.6.6",
     "zlib": "^1.0.5"

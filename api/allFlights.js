@@ -97,6 +97,8 @@ module.exports = async (req, res) => {
   // Get a database connection, cached or otherwise,
   // using the connection string environment variable as the argument
 
+  console.log("TEST !!!")
+
   const url_parts = url.parse(req.url, true);
   const query = url_parts.query;
 
