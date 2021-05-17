@@ -100,6 +100,8 @@ module.exports = async (req, res) => {
   const url_parts = url.parse(req.url, true);
   const query = url_parts.query;
 
+  console.log(req.url)
+
   /*
   if (!("start" in query && "end" in query)) {
     res.status(400);
