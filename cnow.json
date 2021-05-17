@@ -1,8 +1,0 @@
-{
-  "name": "now-mongo-api",
-  "version": 2,
-  "builds": [{ "src": "**/*.js", "use": "@now/node" }],
-  "env": {
-    "MONGODB_URI": "mongodb+srv://admin:7C4TiWt0ysNFoTmI@cluster0.xxocw.mongodb.net/lhr-passages?retryWrites=true&w=majority"
-  }
-}
