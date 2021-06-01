@@ -1,5 +1,5 @@
 {
   "env": {
-    "MONGODB_URI": "@my-mongodb-uri-new"
+    "MONGODB_URI": "@my-mongodb-uri-latest"
   }
 }
